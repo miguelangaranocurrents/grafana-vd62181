@@ -8,6 +8,7 @@ import {
   type FieldSparkline,
   FieldType,
   getFieldColorModeForField,
+  getMinMaxAndDelta,
   type GrafanaTheme2,
   guessDecimals,
   isLikelyAscendingVector,
@@ -73,7 +74,9 @@ export function preparePlotFrame(sparkline: FieldSparkline, config?: FieldConfig
  */
 export function getYRange(alignedFrame: DataFrame): Range.MinMax {
   const field = alignedFrame.fields[1];
-  let { min, max } = field.state?.range!;
+  // Fields created by a transformation may never have gone through field overrides,
+  // so state.range is not guaranteed — fall back to deriving it from the values.
+  let { min, max } = field.state?.range ?? getMinMaxAndDelta(field);
 
   // enure that the min/max from the field config are respected.
   min = Math.min(min!, field.config.min ?? Infinity);

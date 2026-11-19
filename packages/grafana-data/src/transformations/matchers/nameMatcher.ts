@@ -115,8 +115,14 @@ function fieldNameFallback(fields: Set<string>) {
       );
     };
   } else if (fields.has('Time') || fields.has('time')) {
-    fallback = (field: Field, frame: DataFrame) => {
-      return frame.meta?.typeVersion == null && field.type === FieldType.time;
+    fallback = (field: Field, frame: DataFrame, allFrames: DataFrame[]) => {
+      if (frame.meta?.typeVersion != null || field.type !== FieldType.time) {
+        return false;
+      }
+      // Only case variants of the requested name — a frame can carry several time-typed
+      // fields and excluding 'time' must not hide all of them.
+      const displayName = getFieldDisplayName(field, frame, allFrames);
+      return field.name.toLowerCase() === 'time' || displayName.toLowerCase() === 'time';
     };
   }
 
